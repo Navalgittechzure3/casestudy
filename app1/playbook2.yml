@@ -29,6 +29,42 @@
         name: docker
     - name: getting docker image from dockerhub
       command: docker pull navaltechzure3/casestudyappdocker:latest
+    
+---
+- hosts: all
+  become: true
+
+
+  tasks:
+    - name: Install aptitude using apt
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
+
+    - name: Install required system packages
+      apt: name={{ item }} state=latest update_cache=yes
+      loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python-pip', 'virtualenv', 'python-setuptools']
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt: update_cache=yes name=docker-ce state=latest
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+    - name: getting docker image from dockerhub
+      command: docker pull navaltechzure3/casestudyappdocker:latest
+      
+    - name : stopping all docker containers if already running
+      shell: sudo docker stop $(sudo docker ps -a -q)
 
     - name: running docker container from image
-      command: docker run -p 8080:8080 -td navaltechzure3/casestudyappdocker:latest
+      command: docker run -p 8080:8080 -dt  navaltechzure3/casestudyappdocker:latest
+
